@@ -498,13 +498,13 @@ http.createServer(async (req, res) => {
 			lastSession: a.lastsession
 		}))));
 	}
-	
-	fs.writeFileSync('./requests.json', JSON.stringify(requests));
 }).listen(config.port);
 
 setInterval(async () => {
-	if ((new Date()).getMinutes() == 0 && (new Date()).getSeconds() == 0) {
-		requests = {};
-		fs.writeFileSync('./requests.json', JSON.stringify(requests));
-	}
+	if ((new Date()).getMinutes() == 0 && (new Date()).getSeconds() == 0) requests = {};
 }, 1000);
+
+const updateFile = () => {
+	fs.writeFile('./requests.json', JSON.stringify(requests), () => setTimeout(updateFile, 1000));
+}
+updateFile();
