@@ -306,7 +306,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'gamemode': {
 				if (!Array.isArray(value)) value = [value];
-				conditions.push(Array(value.length).fill().map(a => `b.gamemode = $${placeholder}`).join(' OR '));
+				conditions.push(Array(value.length).fill().map(a => `LOWER(b.gamemode) = $${placeholder}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
