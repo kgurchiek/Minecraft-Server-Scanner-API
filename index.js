@@ -198,7 +198,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 		}
 	}
-	if (path == '/bedrockServers') {
+	if (['/bedrockServers', '/bedrockCount'].includes(path)) {
 		switch (arg) {
 			case 'education': {
 				if (!Array.isArray(value)) value = [value];
@@ -490,7 +490,7 @@ http.createServer(async (req, res) => {
 		}
 	}
 
-	if (parsedUrl.pathname == '/bedrockServers') {
+	if (['/bedrockServers', '/bedrockCount'].includes(parsedUrl.pathname)) {
 		if (args.sort != null) {
 			if (Array.isArray(args.sort)) args.sort = args.sort[0];
 			if (!['lastSeen', 'discovered'].includes(args.sort)) {
@@ -787,6 +787,32 @@ http.createServer(async (req, res) => {
 				}
 			}
 		))));
+	}
+
+	if (parsedUrl.pathname == '/bedrockCount') {
+		if (!(req.headers['cf-connecting-ip'] == null || config.exclude.includes(req.headers['cf-connecting-ip']))) {
+			if (requests[req.headers['cf-connecting-ip']] >= 10000) {
+				res.statusCode = 429;
+				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
+				return;
+			}
+			if (requests[req.headers['cf-connecting-ip']] + limit > 10000) limit = 10000 - requests[req.headers['cf-connecting-ip']];
+			requests[req.headers['cf-connecting-ip']] += limit;
+		}
+		
+		let query = `SELECT COUNT(*) FROM bedrock b ${conditions.length > 0 ? 'WHERE' : ''} ${conditions.map(a => `(${a})`).join(' AND ')}`;
+		let result;
+		try {
+			result = await client.query(query, vars);
+		} catch (err) {
+			console.log(query)
+			console.error(err);
+			res.statusCode = 500;
+			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			return;
+		}
+
+		res.end(result.rows[0].count);
 	}
 }).listen(config.port);
 
