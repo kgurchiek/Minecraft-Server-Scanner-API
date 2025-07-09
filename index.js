@@ -67,10 +67,24 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				vars.push(...value);
 				break;
 			}
-			case 'playerHistory': {
+			case 'onlineUuid': {
 				if (!Array.isArray(value)) value = [value];
 				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "onlinePlayer" (${JSON.stringify(item)} is not a string)` };
+				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND h.lastSession = s.lastSeen AND p.id IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
+				vars.push(...value);
+				break;
+			}
+			case 'playerHistory': {
+				if (!Array.isArray(value)) value = [value];
+				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "playerHistory" (${JSON.stringify(item)} is not a string)` };
 				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND p.name IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
+				vars.push(...value);
+				break;
+			}
+			case 'uuidHistory': {
+				if (!Array.isArray(value)) value = [value];
+				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "playerHistory" (${JSON.stringify(item)} is not a string)` };
+				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND p.id IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
 				vars.push(...value);
 				break;
 			}
