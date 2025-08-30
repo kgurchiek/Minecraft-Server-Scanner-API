@@ -4,7 +4,7 @@ const url = require('url');
 const querystring = require('querystring');
 const pg = require('pg');
 const config = require('./config.json');
-const client = new pg.Client({
+const pool = new pg.Pool({
     host: config.sql.host,
     port: config.sql.port,
     user: config.sql.user,
@@ -13,12 +13,9 @@ const client = new pg.Client({
     ssl: {
     	require: true,
         rejectUnauthorized: false
-    }
+    },
+	max: 20
 });
-(async () => {
-	await client.connect();
-	console.log('Connected to database');
-})();
 var requests = require('./requests.json');
 const favicon = fs.readFileSync('favicon.ico');
 
@@ -650,7 +647,7 @@ http.createServer(async (req, res) => {
 		let query = `SELECT * FROM servers s ${conditions.length > 0 ? 'WHERE' : ''} ${conditions.map(a => `(${a})`).join(' AND ')} ${sort == null ? '' : `ORDER BY ${sort} ${descending ? 'DESC' : ''}`} LIMIT ${limit} OFFSET ${skip}`
 		let result;
 		try {
-			result = await client.query(query, vars);
+			result = await pool.query(query, vars);
 		} catch (err) {
 			console.log(query);
 			console.error(err);
@@ -704,7 +701,7 @@ http.createServer(async (req, res) => {
 		let query = `SELECT COUNT(*) FROM servers s ${conditions.length > 0 ? 'WHERE' : ''} ${conditions.map(a => `(${a})`).join(' AND ')}`;
 		let result;
 		try {
-			result = await client.query(query, vars);
+			result = await pool.query(query, vars);
 		} catch (err) {
 			console.log(query)
 			console.error(err);
@@ -730,7 +727,7 @@ http.createServer(async (req, res) => {
 		let query = `SELECT DISTINCT ON (p.playerId) * FROM servers s JOIN history h ON h.serverId = s.serverId JOIN players p ON h.playerId = p.playerId WHERE ${conditions.map(a => `(${a})`).join(' AND ')}`;
 		let result;
 		try {
-			result = await client.query(query, vars);
+			result = await pool.query(query, vars);
 		} catch (err) {
 			console.log(query);
 			console.error(err);
@@ -760,7 +757,7 @@ http.createServer(async (req, res) => {
 		let query = `SELECT * FROM bedrock b ${conditions.length > 0 ? 'WHERE' : ''} ${conditions.map(a => `(${a})`).join(' AND ')} ${sort == null ? '' : `ORDER BY ${sort} ${descending ? 'DESC' : ''}`} LIMIT ${limit} OFFSET ${skip}`
 		let result;
 		try {
-			result = await client.query(query, vars);
+			result = await pool.query(query, vars);
 		} catch (err) {
 			console.log(query);
 			console.error(err);
@@ -817,7 +814,7 @@ http.createServer(async (req, res) => {
 		let query = `SELECT COUNT(*) FROM bedrock b ${conditions.length > 0 ? 'WHERE' : ''} ${conditions.map(a => `(${a})`).join(' AND ')}`;
 		let result;
 		try {
-			result = await client.query(query, vars);
+			result = await pool.query(query, vars);
 		} catch (err) {
 			console.log(query)
 			console.error(err);
