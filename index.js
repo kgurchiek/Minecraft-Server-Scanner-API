@@ -24,6 +24,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 		switch (arg) {
 			case 'playerCount': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "playerCount" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.playerCount = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -31,6 +32,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'minPlayers': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "minPlayers" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.playerCount >= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -38,6 +40,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'maxPlayers': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "maxPlayers" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.playerCount <= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -45,6 +48,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'playerLimit': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "playerLimit" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.playerLimit = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -52,6 +56,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'full': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "full" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map((a, i) => `s.playerCount ${value[i] == 'true' ? '>=' : '<'} s.playerLimit`).join(' OR ')}`);
@@ -59,6 +64,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'onlinePlayer': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "onlinePlayer" (${JSON.stringify(item)} is not a string)` };
 				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND h.lastSession = s.lastSeen AND p.name IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
 				vars.push(...value);
@@ -66,6 +72,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'onlineUuid': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "onlinePlayer" (${JSON.stringify(item)} is not a string)` };
 				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND h.lastSession = s.lastSeen AND p.id IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
 				vars.push(...value);
@@ -73,6 +80,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'playerHistory': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "playerHistory" (${JSON.stringify(item)} is not a string)` };
 				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND p.name IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
 				vars.push(...value);
@@ -80,6 +88,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'uuidHistory': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (typeof item != 'string') return { error: `Invalid value for parameter "playerHistory" (${JSON.stringify(item)} is not a string)` };
 				conditions.push(`EXISTS (SELECT 1 FROM history h JOIN players p ON h.playerId = p.playerId WHERE h.serverId = s.serverId AND p.id IN (${new Array(value.length).fill().map(a => `$${placeholder++}`)}) LIMIT 1)`);
 				vars.push(...value);
@@ -87,12 +96,14 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'version': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `s.version LIKE $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'protocol': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "protocol" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.protocol = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -100,6 +111,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'hasFavicon': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "hasFavicon" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.hasFavicon = $${placeholder++}`).join(' OR ')}`);
@@ -108,18 +120,21 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'description': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `s.description LIKE $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'descriptionVector': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `s.descriptionVector @@ plainto_tsquery('simple', $${placeholder++})`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'hasPlayerSample': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "hasPlayerSample" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.hasPlayerSample = $${placeholder++}`).join(' OR ')}`);
@@ -128,6 +143,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'seenAfter': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "seenAfter" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.lastSeen > $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -135,6 +151,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'seenBefore': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "seenBefore" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.lastSeen < $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -142,6 +159,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'ip': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "ip" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.ip = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -149,6 +167,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'minIp': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "minIp" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.ip >= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -156,6 +175,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'maxIp': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "maxIp" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.ip <= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -163,6 +183,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'port': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "port" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.port = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 32768)));
@@ -170,18 +191,21 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'country': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `s.country = $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'org': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `s.org LIKE $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'cracked': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "cracked" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.cracked = $${placeholder++}`).join(' OR ')}`);
@@ -190,6 +214,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'whitelisted': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "whitelisted" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.whitelisted = $${placeholder++}`).join(' OR ')}`);
@@ -198,6 +223,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'vanilla': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "vanilla" (${item} is not a boolean)` };
 				value = value.map(a => a == 'true');
@@ -213,6 +239,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 		switch (arg) {
 			case 'education': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "education" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.education = $${placeholder++}`).join(' OR ')}`);
@@ -221,6 +248,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'playerCount': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "playerCount" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.playerCount = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -228,6 +256,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'minPlayers': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "minPlayers" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.playerCount >= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -235,6 +264,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'maxPlayers': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "maxPlayers" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.playerCount <= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -242,6 +272,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'playerLimit': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "playerLimit" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.playerLimit = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -249,6 +280,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'full': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "full" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map((a, i) => `b.playerCount ${value[i] == 'true' ? '>=' : '<'} b.playerLimit`).join(' OR ')}`);
@@ -256,12 +288,14 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'version': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `b.version LIKE $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'protocol': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "protocol" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.protocol = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -269,12 +303,14 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'description': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `(b.description LIKE $${placeholder} OR b.description2 LIKE $${placeholder++})`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'seenAfter': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "seenAfter" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.lastSeen > $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -282,6 +318,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'seenBefore': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "seenBefore" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.lastSeen < $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a)));
@@ -289,6 +326,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'ip': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "ip" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.ip = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -296,6 +334,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'minIp': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "minIp" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.ip >= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -303,6 +342,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'maxIp': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "maxIp" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.ip <= $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
@@ -310,6 +350,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'port': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "port" (${item} is not a number)` };
 				conditions.push(`${Array(value.length).fill().map(a => `b.port = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 32768)));
@@ -317,18 +358,21 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 			}
 			case 'gamemode': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `LOWER(b.gamemode) = $${placeholder}`).join(' OR '));
 				vars.push(...value.map(a => a.toLowerCase()));
 				break;
 			}
 			case 'country': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `b.country = $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
 			}
 			case 'org': {
 				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
 				conditions.push(Array(value.length).fill().map(a => `b.org LIKE $${placeholder++}`).join(' OR '));
 				vars.push(...value);
 				break;
