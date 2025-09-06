@@ -693,7 +693,7 @@ http.createServer(async (req, res) => {
 		try {
 			result = await pool.query(query, vars);
 		} catch (err) {
-			console.log(query);
+			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: 'Error constructing query' }));
@@ -747,7 +747,7 @@ http.createServer(async (req, res) => {
 		try {
 			result = await pool.query(query, vars);
 		} catch (err) {
-			console.log(query)
+			console.error(query)
 			console.error(err);
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: 'Error constructing query' }));
@@ -773,7 +773,7 @@ http.createServer(async (req, res) => {
 		try {
 			result = await pool.query(query, vars);
 		} catch (err) {
-			console.log(query);
+			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: 'Error constructing query' }));
@@ -803,7 +803,7 @@ http.createServer(async (req, res) => {
 		try {
 			result = await pool.query(query, vars);
 		} catch (err) {
-			console.log(query);
+			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: 'Error constructing query' }));
@@ -860,7 +860,7 @@ http.createServer(async (req, res) => {
 		try {
 			result = await pool.query(query, vars);
 		} catch (err) {
-			console.log(query)
+			console.error(query)
 			console.error(err);
 			res.statusCode = 500;
 			res.end(JSON.stringify({ error: 'Error constructing query' }));
