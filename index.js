@@ -696,7 +696,8 @@ http.createServer(async (req, res) => {
 			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
-			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
+			else res.end(JSON.stringify({ error: 'Error constructing query' }));
 			return;
 		}
 
@@ -750,7 +751,8 @@ http.createServer(async (req, res) => {
 			console.error(query)
 			console.error(err);
 			res.statusCode = 500;
-			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
+			else res.end(JSON.stringify({ error: 'Error constructing query' }));
 			return;
 		}
 
@@ -776,7 +778,8 @@ http.createServer(async (req, res) => {
 			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
-			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
+			else res.end(JSON.stringify({ error: 'Error constructing query' }));
 			return;
 		}
 		
@@ -806,7 +809,8 @@ http.createServer(async (req, res) => {
 			console.error(query);
 			console.error(err);
 			res.statusCode = 500;
-			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
+			else res.end(JSON.stringify({ error: 'Error constructing query' }));
 			return;
 		}
 
@@ -863,7 +867,8 @@ http.createServer(async (req, res) => {
 			console.error(query)
 			console.error(err);
 			res.statusCode = 500;
-			res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
+			else res.end(JSON.stringify({ error: 'Error constructing query' }));
 			return;
 		}
 
