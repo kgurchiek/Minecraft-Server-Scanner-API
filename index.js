@@ -425,6 +425,11 @@ http.createServer(async (req, res) => {
 		}
 	}
 	console.log(req.headers['cf-connecting-ip'] == null ? req.socket.remoteAddress : req.headers['cf-connecting-ip'], args);
+
+	if (!['/servers', '/count', '/bedrockServers', 'bedrockCount'].includes(parsedUrl.pathname)) {
+		res.statusCode = '404';
+		res.end();
+	}
 	
 	var skip = 0;
 	var limit = 20;
