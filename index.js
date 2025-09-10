@@ -426,7 +426,7 @@ http.createServer(async (req, res) => {
 	}
 	console.log(req.headers['cf-connecting-ip'] == null ? req.socket.remoteAddress : req.headers['cf-connecting-ip'], args);
 
-	if (!['/servers', '/count', '/bedrockServers', 'bedrockCount'].includes(parsedUrl.pathname)) {
+	if (!['/servers', '/playerHistory', '/count', '/bedrockServers', '/bedrockCount'].includes(parsedUrl.pathname)) {
 		res.statusCode = '404';
 		res.end();
 	}
@@ -445,7 +445,7 @@ http.createServer(async (req, res) => {
 	delete args.limit;
 	if (limit > 100) limit = 100;
 	if (limit == 0) return res.end('[]');
-	
+
 	if (['/servers', '/count'].includes(parsedUrl.pathname)) {
 		if (args.sort != null) {
 			if (Array.isArray(args.sort)) args.sort = args.sort[0];
