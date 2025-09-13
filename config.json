@@ -1,4 +1,5 @@
 {
+    "requireCloudflare": false,
     "port": 80,
     "sql": {
         "host": "",

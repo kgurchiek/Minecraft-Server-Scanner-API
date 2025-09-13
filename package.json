@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "ip-address": "^10.0.1",
     "pg": "^8.14.0"
   }
 }
