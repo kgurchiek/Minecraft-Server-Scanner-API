@@ -43,8 +43,8 @@ let versions = {
 	}
 
 	http.createServer(async (req, res) => {
-		if (config.cloudflare) {
-			let userIp = req.socket.remoteAddress;
+		let userIp = req.socket.remoteAddress;
+		if (!['127.0.0.0', '::1'].includes(userIp) && config.cloudflare) {
 			if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
 			let v6 = userIp.includes(':');
 			let cloudflareAddresses = v6 ? cloudflareIpv6 : cloudflareIpv4;
