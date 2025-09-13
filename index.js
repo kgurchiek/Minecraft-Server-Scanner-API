@@ -26,7 +26,7 @@ let versions = {
 (async () => {
 	let cloudflareIpv4;
 	let cloudflareIpv6;
-	if (config.requireCloudflare) {
+	if (config.cloudflare) {
 		cloudflareIpv4 = await fetch('https://www.cloudflare.com/ips-v4');
 		if (cloudflareIpv4.status != 200) {
 			console.log(`Couldn't fetch Cloudflare ip ranges (${cloudflareIpv4.status})`);
@@ -43,7 +43,7 @@ let versions = {
 	}
 
 	http.createServer(async (req, res) => {
-		if (config.requireCloudflare) {
+		if (config.cloudflare) {
 			let userIp = req.socket.remoteAddress;
 			let v6 = userIp.includes(':');
 			let cloudflareAddresses = v6 ? cloudflareIpv6 : cloudflareIpv4;

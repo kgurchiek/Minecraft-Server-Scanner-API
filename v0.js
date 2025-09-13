@@ -392,7 +392,7 @@ module.exports = async (req, res, pool, requests) => {
 		return;
 	}
 	
-	let userIp = config.requireCloudflare ? req.headers['cf-connecting-ip'] : req.socket.remoteAddress;
+	let userIp = config.cloudflare ? req.headers['cf-connecting-ip'] : req.socket.remoteAddress;
 	if (requests[userIp] == null) requests[userIp] = 0;
 	let args = querystring.parse(parsedUrl.query);
 	if (req.method == 'POST') {
