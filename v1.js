@@ -707,8 +707,8 @@ module.exports = async (req, res, pool, requests) => {
 			return;
 		}
 
-		res.end({
-			data: JSON.stringify(result.rows.map(a => ({
+		res.end(JSON.stringify({
+			data: result.rows.map(a => ({
 				ip: a.ip + 2147483648,
 				port: a.port + 32768,
 				discovered: a.discovered,
@@ -736,9 +736,9 @@ module.exports = async (req, res, pool, requests) => {
 				},
 				cracked: a.cracked,
 				whitelisted: a.whitelisted
-			}))),
+			})),
 			credits: 10000 - requests[userIp]
-		});
+		}));
 	}
 
 	if (endpoint == 'count') {
@@ -765,10 +765,10 @@ module.exports = async (req, res, pool, requests) => {
 			return;
 		}
 
-		res.end({
+		res.end(JSON.stringify({
 			data: result.rows[0].count,
 			credits: 10000 - requests[userIp]
-		});
+		}));
 	}
 
 	if (endpoint == 'playerHistory') {
@@ -795,14 +795,14 @@ module.exports = async (req, res, pool, requests) => {
 			return;
 		}
 		
-		res.end({
-			data: JSON.stringify(result.rows.map(a => ({
+		res.end(JSON.stringify({
+			data: result.rows.map(a => ({
 				name: a.name,
 				id: a.id,
 				lastSession: a.lastsession
-			}))),
+			})),
 			credits: 10000 - requests[userIp]
-		});
+		}));
 	}
 
 	if (endpoint == 'bedrockServers') {
@@ -829,8 +829,8 @@ module.exports = async (req, res, pool, requests) => {
 			return;
 		}
 
-		res.end({
-			data: JSON.stringify(result.rows.map(a => (
+		res.end(JSON.stringify({
+			data: result.rows.map(a => (
 				{
 					ip: a.ip + 2147483648,
 					port: a.port + 32768,
@@ -861,9 +861,9 @@ module.exports = async (req, res, pool, requests) => {
 						lon: a.lon
 					}
 				}
-			))),
+			)),
 			credits: 10000 - requests[userIp]
-		});
+		}));
 	}
 
 	if (endpoint == 'bedrockCount') {
@@ -890,9 +890,9 @@ module.exports = async (req, res, pool, requests) => {
 			return;
 		}
 
-		res.end({
+		res.end(JSON.stringify({
 			data: result.rows[0].count,
 			credits: 10000 - requests[userIp]
-		});
+		}));
 	}
 };
