@@ -50,7 +50,10 @@ let versions = {
 			let address = v6 ? ipAddress.Address6 : ipAddress.Address4;
 			let isCloudflare = false;
 			for (let i = 0; i < cloudflareAddresses.length && !isCloudflare; i++) if ((new address(userIp)).isInSubnet(new address(cloudflareAddresses[i]))) isCloudflare = true;
-			if (!isCloudflare) return;
+			if (!isCloudflare) {
+				console.log(`Dropping non-cloudflare request (${userIp})`);
+				return;
+			}
 		}
 
 		const parsedUrl = url.parse(req.url);
