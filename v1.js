@@ -416,7 +416,7 @@ module.exports = async (req, res, pool, requests) => {
 	if (endpoint == 'credits') {
 		requests[userIp]++;
 		res.statusCode = 200;
-		res.end(JSON.stringify({ credits: 10000 - requests[userIp] }));
+		res.end(JSON.stringify({ credits: 10000 - requests[userIp], max: 10000 }));
 	}
 
 	if (!['servers', 'playerHistory', 'count', 'bedrockServers', 'bedrockCount'].includes(endpoint)) {
