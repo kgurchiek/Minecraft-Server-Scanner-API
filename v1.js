@@ -416,7 +416,7 @@ module.exports = async (req, res, pool, requests) => {
 	if (endpoint == 'credits') {
 		requests[userIp]++;
 		res.statusCode = 200;
-		res.end(JSON.stringify({ credits: 10000 - requests[userIp], max: 10000 }));
+		res.end(JSON.stringify({ credits: Math.max(0, 10000 - requests[userIp]), max: 10000 }));
 	}
 
 	if (!['servers', 'playerHistory', 'count', 'bedrockServers', 'bedrockCount'].includes(endpoint)) {
@@ -440,7 +440,7 @@ module.exports = async (req, res, pool, requests) => {
 	if (limit > 100) limit = 100;
 	if (limit <= 0) {
 		requests[userIp]++;
-		return res.end(JSON.stringify({ data: [], credits: 10000 - requests[userIp] }));
+		return res.end(JSON.stringify({ data: [], credits: Math.max(0, 10000 - requests[userIp]) }));
 	}
 
 	if (['servers', 'count'].includes(endpoint)) {
@@ -686,7 +686,7 @@ module.exports = async (req, res, pool, requests) => {
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -737,7 +737,7 @@ module.exports = async (req, res, pool, requests) => {
 				cracked: a.cracked,
 				whitelisted: a.whitelisted
 			})),
-			credits: 10000 - requests[userIp]
+			credits: Math.max(0, 10000 - requests[userIp])
 		}));
 	}
 
@@ -748,7 +748,7 @@ module.exports = async (req, res, pool, requests) => {
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
 			requests[userIp] += 100;
 		}
 		
@@ -767,7 +767,7 @@ module.exports = async (req, res, pool, requests) => {
 
 		res.end(JSON.stringify({
 			data: result.rows[0].count,
-			credits: 10000 - requests[userIp]
+			credits: Math.max(0, 10000 - requests[userIp])
 		}));
 	}
 
@@ -778,7 +778,7 @@ module.exports = async (req, res, pool, requests) => {
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
 			requests[userIp] += Math.max(10, limit);
 		}
 
@@ -801,7 +801,7 @@ module.exports = async (req, res, pool, requests) => {
 				id: a.id,
 				lastSession: a.lastsession
 			})),
-			credits: 10000 - requests[userIp]
+			credits: Math.max(0, 10000 - requests[userIp])
 		}));
 	}
 
@@ -812,7 +812,7 @@ module.exports = async (req, res, pool, requests) => {
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -862,7 +862,7 @@ module.exports = async (req, res, pool, requests) => {
 					}
 				}
 			)),
-			credits: 10000 - requests[userIp]
+			credits: Math.max(0, 10000 - requests[userIp])
 		}));
 	}
 
@@ -873,7 +873,7 @@ module.exports = async (req, res, pool, requests) => {
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
 			requests[userIp] += 100;
 		}
 		
@@ -892,7 +892,7 @@ module.exports = async (req, res, pool, requests) => {
 
 		res.end(JSON.stringify({
 			data: result.rows[0].count,
-			credits: 10000 - requests[userIp]
+			credits: Math.max(0, 10000 - requests[userIp])
 		}));
 	}
 };
