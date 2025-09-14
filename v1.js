@@ -437,7 +437,7 @@ module.exports = async (req, res, pool, requests) => {
 	delete args.skip;
 	if (args.limit != null && !isNaN(args.limit) && !isNaN(parseInt(args.limit))) limit = parseInt(args.limit);
 	delete args.limit;
-	if (limit > 100) limit = 100;
+	if (limit > 1000) limit = 1000;
 	if (limit <= 0) {
 		requests[userIp]++;
 		return res.end(JSON.stringify({ data: [], credits: Math.max(0, 10000 - requests[userIp]) }));
