@@ -416,7 +416,8 @@ module.exports = async (req, res, pool, requests) => {
 	if (endpoint == 'credits') {
 		requests[userIp]++;
 		res.statusCode = 200;
-		res.end(JSON.stringify({ credits: Math.max(0, 10000 - requests[userIp]), max: 10000 }));
+		res.end(JSON.stringify({ credits: Math.max(0, config.maxCredits - requests[userIp]), max: config.maxCredits }));
+		return;
 	}
 
 	if (!['servers', 'playerHistory', 'count', 'bedrockServers', 'bedrockCount'].includes(endpoint)) {
@@ -440,7 +441,7 @@ module.exports = async (req, res, pool, requests) => {
 	if (limit > 1000) limit = 1000;
 	if (limit <= 0) {
 		requests[userIp]++;
-		return res.end(JSON.stringify({ data: [], credits: Math.max(0, 10000 - requests[userIp]) }));
+		return res.end(JSON.stringify({ data: [], credits: Math.max(0, config.maxCredits - requests[userIp]) }));
 	}
 
 	if (['servers', 'count'].includes(endpoint)) {
@@ -680,13 +681,13 @@ module.exports = async (req, res, pool, requests) => {
 	
 	res.statusCode = 200;
 	if (endpoint == 'servers') {
-		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+		if (!config.exclude.includes(userIp)) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
+			if (requests[userIp] + limit > config.maxCredits) limit = Math.max(0, config.maxCredits - requests[userIp]);
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -737,18 +738,18 @@ module.exports = async (req, res, pool, requests) => {
 				cracked: a.cracked,
 				whitelisted: a.whitelisted
 			})),
-			credits: Math.max(0, 10000 - requests[userIp])
+			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
 
 	if (endpoint == 'count') {
-		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+		if (!config.exclude.includes(userIp)) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
+			if (requests[userIp] + limit > config.maxCredits) limit = Math.max(0, config.maxCredits - requests[userIp]);
 			requests[userIp] += 100;
 		}
 		
@@ -766,20 +767,19 @@ module.exports = async (req, res, pool, requests) => {
 		}
 
 		res.end(JSON.stringify({
-			data: result.rows[0].count,
-			credits: Math.max(0, 10000 - requests[userIp])
+			data: parseInt(result.rows[0].count),
+			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
 
 	if (endpoint == 'playerHistory') {
-		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+		if (!config.exclude.includes(userIp)) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
-			requests[userIp] += Math.max(10, limit);
+			requests[userIp] += 5;
 		}
 
 		let query = `SELECT DISTINCT ON (p.playerId) * FROM servers s JOIN history h ON h.serverId = s.serverId JOIN players p ON h.playerId = p.playerId WHERE ${conditions.map(a => `(${a})`).join(' AND ')}`;
@@ -801,18 +801,18 @@ module.exports = async (req, res, pool, requests) => {
 				id: a.id,
 				lastSession: a.lastsession
 			})),
-			credits: Math.max(0, 10000 - requests[userIp])
+			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
 
 	if (endpoint == 'bedrockServers') {
-		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+		if (!config.exclude.includes(userIp)) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
+			if (requests[userIp] + limit > config.maxCredits) limit = Math.max(0, config.maxCredits - requests[userIp]);
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -862,18 +862,18 @@ module.exports = async (req, res, pool, requests) => {
 					}
 				}
 			)),
-			credits: Math.max(0, 10000 - requests[userIp])
+			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
 
 	if (endpoint == 'bedrockCount') {
-		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+		if (!config.exclude.includes(userIp)) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = Math.max(0, 10000 - requests[userIp]);
+			if (requests[userIp] + limit > config.maxCredits) limit = Math.max(0, config.maxCredits - requests[userIp]);
 			requests[userIp] += 100;
 		}
 		
@@ -891,8 +891,8 @@ module.exports = async (req, res, pool, requests) => {
 		}
 
 		res.end(JSON.stringify({
-			data: result.rows[0].count,
-			credits: Math.max(0, 10000 - requests[userIp])
+			data: parseInt(result.rows[0].count),
+			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
 };

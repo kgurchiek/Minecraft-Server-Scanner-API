@@ -675,12 +675,12 @@ module.exports = async (req, res, pool, requests) => {
 	res.statusCode = 200;
 	if (parsedUrl.pathname == '/servers') {
 		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > config.maxCredits) limit = config.maxCredits - requests[userIp];
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -734,12 +734,12 @@ module.exports = async (req, res, pool, requests) => {
 
 	if (parsedUrl.pathname == '/count') {
 		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > config.maxCredits) limit = config.maxCredits - requests[userIp];
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -761,12 +761,12 @@ module.exports = async (req, res, pool, requests) => {
 
 	if (parsedUrl.pathname == '/playerHistory') {
 		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > config.maxCredits) limit = config.maxCredits - requests[userIp];
 			requests[userIp] += Math.max(10, limit);
 		}
 
@@ -792,12 +792,12 @@ module.exports = async (req, res, pool, requests) => {
 
 	if (parsedUrl.pathname == '/bedrockServers') {
 		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > config.maxCredits) limit = config.maxCredits - requests[userIp];
 			requests[userIp] += Math.max(10, limit);
 		}
 		
@@ -850,12 +850,12 @@ module.exports = async (req, res, pool, requests) => {
 
 	if (parsedUrl.pathname == '/bedrockCount') {
 		if (!(userIp == null || config.exclude.includes(userIp))) {
-			if (requests[userIp] >= 10000) {
+			if (requests[userIp] >= config.maxCredits) {
 				res.statusCode = 429;
 				res.end(JSON.stringify({ error: 'Too many requests (Limit: 10,000 credits per hour)' }));
 				return;
 			}
-			if (requests[userIp] + limit > 10000) limit = 10000 - requests[userIp];
+			if (requests[userIp] + limit > config.maxCredits) limit = config.maxCredits - requests[userIp];
 			requests[userIp] += Math.max(10, limit);
 		}
 		

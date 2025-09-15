@@ -16,7 +16,12 @@ const pool = new pg.Pool({
     },
 	max: 20
 });
-var requests = require('./requests.json');
+let requests = {};
+try {
+	requests = JSON.parse(fs.readFileSync('requests.json').toString());
+} catch (err) {
+	console.error('requests.json missing or corrupted, creating new file.')
+};
 
 let versions = {
 	v0: require('./v0.js'),

@@ -1,5 +1,6 @@
 {
     "cloudflare": false,
+    "maxCredits": 20000,
     "port": 80,
     "sql": {
         "host": "",
