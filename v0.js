@@ -692,7 +692,7 @@ module.exports = async (req, res, pool, requests) => {
 			console.error(query);
 			console.error(err);
 			if (err.message.includes('canceling statement due to statement timeout')) {
-				res.statusCode = 504;
+				res.statusCode = 503;
 				res.end(JSON.stringify({ error: 'Query timeout' }));
 			} else {
 				res.statusCode = 500;
@@ -750,9 +750,13 @@ module.exports = async (req, res, pool, requests) => {
 		} catch (err) {
 			console.error(query)
 			console.error(err);
-			res.statusCode = 500;
-			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
-			else res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) {
+				res.statusCode = 503;
+				res.end(JSON.stringify({ error: 'Query timeout' }));
+			} else {
+				res.statusCode = 500;
+				res.end(JSON.stringify({ error: 'Error constructing query' }));
+			}
 			return;
 		}
 
@@ -777,9 +781,13 @@ module.exports = async (req, res, pool, requests) => {
 		} catch (err) {
 			console.error(query);
 			console.error(err);
-			res.statusCode = 500;
-			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
-			else res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) {
+				res.statusCode = 503;
+				res.end(JSON.stringify({ error: 'Query timeout' }));
+			} else {
+				res.statusCode = 500;
+				res.end(JSON.stringify({ error: 'Error constructing query' }));
+			}
 			return;
 		}
 		
@@ -808,9 +816,13 @@ module.exports = async (req, res, pool, requests) => {
 		} catch (err) {
 			console.error(query);
 			console.error(err);
-			res.statusCode = 500;
-			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
-			else res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) {
+				res.statusCode = 503;
+				res.end(JSON.stringify({ error: 'Query timeout' }));
+			} else {
+				res.statusCode = 500;
+				res.end(JSON.stringify({ error: 'Error constructing query' }));
+			}
 			return;
 		}
 
@@ -866,9 +878,13 @@ module.exports = async (req, res, pool, requests) => {
 		} catch (err) {
 			console.error(query)
 			console.error(err);
-			res.statusCode = 500;
-			if (err.message.includes('canceling statement due to statement timeout')) res.end(JSON.stringify({ error: 'Query timeout' }));
-			else res.end(JSON.stringify({ error: 'Error constructing query' }));
+			if (err.message.includes('canceling statement due to statement timeout')) {
+				res.statusCode = 503;
+				res.end(JSON.stringify({ error: 'Query timeout' }));
+			} else {
+				res.statusCode = 500;
+				res.end(JSON.stringify({ error: 'Error constructing query' }));
+			}
 			return;
 		}
 
