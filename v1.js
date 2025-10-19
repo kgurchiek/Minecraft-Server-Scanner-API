@@ -215,6 +215,15 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				conditions.push(`${Array(value.length).fill().map((a, i) => `s.hasForgeData = ${!value[i]} ${value[i] ? 'AND' : 'OR'} s.version ${value[i] ? '' : 'NOT'} SIMILAR TO '[0-9]\.[0-9]{1,2}(\.[0-9])?'`).join(' OR ')}`);
 				break;
 			}
+			case 'forge': {
+				if (!Array.isArray(value)) value = [value];
+				if (value.length == 0) return { placeholder };
+				value = value.map(a => a.toString().toLowerCase());
+				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "forge" (${item} is not a boolean)` };
+				conditions.push(`${Array(value.length).fill().map(a => `s.hasForgeData = $${placeholder++}`).join(' OR ')}`);
+				vars.push(...value.map(a => a == 'true'));
+				break;
+			}
 			default: {
 				return { error: `Unknown parameter "${arg}"` };
 			}
