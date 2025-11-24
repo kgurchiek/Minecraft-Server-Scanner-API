@@ -431,6 +431,7 @@ module.exports = async (req, res, pool, requests) => {
 
 	if (!['servers', 'playerHistory', 'count', 'bedrockServers', 'bedrockCount'].includes(endpoint)) {
 		res.statusCode = '404';
+		res.removeHeader('Content-Type');
 		res.end();
 		return;
 	}
