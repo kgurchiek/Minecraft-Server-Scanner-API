@@ -401,7 +401,9 @@ module.exports = async (req, res, pool, requests) => {
 		return;
 	}
 	
-	let userIp = config.cloudflare ? req.headers['cf-connecting-ip'] : req.socket.remoteAddress;
+	let userIp = req.socket.remoteAddress;
+	if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
+	if (!config.exclude.includes(userIp) && config.cloudflare) userIp = req.headers['cf-connecting-ip'];
 	if (requests[userIp] == null) requests[userIp] = 0;
 	let args = querystring.parse(parsedUrl.query);
 	if (req.method == 'POST') {
