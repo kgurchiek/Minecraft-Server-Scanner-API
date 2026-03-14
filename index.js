@@ -54,11 +54,13 @@ let versions = {
 			let v6 = userIp.includes(':');
 			let cloudflareAddresses = v6 ? cloudflareIpv6 : cloudflareIpv4;
 			let address = v6 ? ipAddress.Address6 : ipAddress.Address4;
-			let isCloudflare = false;
-			for (let i = 0; i < cloudflareAddresses.length && !isCloudflare; i++) if ((new address(userIp)).isInSubnet(new address(cloudflareAddresses[i]))) isCloudflare = true;
-			if (!isCloudflare) {
-				console.log(`Dropping non-cloudflare request (${userIp})`);
-				return;
+			if (!config.exclude.includes(userIp)) {
+				let isCloudflare = false;
+				for (let i = 0; i < cloudflareAddresses.length && !isCloudflare; i++) if ((new address(userIp)).isInSubnet(new address(cloudflareAddresses[i]))) isCloudflare = true;
+				if (!isCloudflare) {
+					console.log(`Dropping non-cloudflare request (${userIp})`);
+					return;
+				}
 			}
 		}
 
