@@ -5,6 +5,7 @@ const favicon = fs.readFileSync('favicon.ico');
 const config = require('./config.json');
 
 function addCondition(path, arg, value, conditions, vars, placeholder) {
+        if (value == null) value = 'null';
 	if (['servers', 'count'].includes(path)) {
 		switch (arg) {
 			case 'playerCount': {
@@ -174,6 +175,15 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				vars.push(...value.map(a => parseInt(a - 32768)));
 				break;
 			}
+                        case 'enforcesSecureChat': {
+                                if (!Array.isArray(value)) value = [value];
+                                if (value.length == 0) return { placeholder };
+                                value = value.map(a => a.toString().toLowerCase());
+                                for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "enforcesSecureChat" (${item} is not a boolean)` };
+                                conditions.push(`${Array(value.length).fill().map(a => `s.enforcessecurechat = $${placeholder++}`).join(' OR ')}`);
+                                vars.push(...value.map(a => a == 'true'));
+                                break;
+                        }
 			case 'country': {
 				if (!Array.isArray(value)) value = [value];
 				if (value.length == 0) return { placeholder };
@@ -192,7 +202,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				if (!Array.isArray(value)) value = [value];
 				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
-				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "cracked" (${item} is not a boolean)` };
+				for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "cracked" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.cracked = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => a == 'true'));
 				break;
@@ -201,7 +211,7 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				if (!Array.isArray(value)) value = [value];
 				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
-				for (let item of value) if (!['true', 'false'].includes(item)) return { error: `Invalid value for parameter "whitelisted" (${item} is not a boolean)` };
+				for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "whitelisted" (${item} is not a boolean)` };
 				conditions.push(`${Array(value.length).fill().map(a => `s.whitelisted = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => a == 'true'));
 				break;
