@@ -180,8 +180,8 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
                                 if (value.length == 0) return { placeholder };
                                 value = value.map(a => a.toString().toLowerCase());
                                 for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "enforcesSecureChat" (${item} is not a boolean)` };
-                                conditions.push(`${Array(value.length).fill().map(a => `s.enforcessecurechat = $${placeholder++}`).join(' OR ')}`);
-                                vars.push(...value.map(a => a == 'true'));
+                                conditions.push(`${Array(value.length).fill().map((a, i) => value[i] == 'null' ? 's.enforcessecurechat IS NULL' : `s.enforcessecurechat = $${placeholder++}`).join(' OR ')}`);
+                                vars.push(...value.filter(a => a != 'null').map(a => a == 'true'));
                                 break;
                         }
 			case 'country': {
@@ -203,8 +203,8 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "cracked" (${item} is not a boolean)` };
-				conditions.push(`${Array(value.length).fill().map(a => `s.cracked = $${placeholder++}`).join(' OR ')}`);
-				vars.push(...value.map(a => a == 'true'));
+				conditions.push(`${Array(value.length).fill().map((a, i) => value[i] == 'null' ? 's.cracked IS NULL' :  `s.cracked = $${placeholder++}`).join(' OR ')}`);
+				vars.push(...value.filter(a => a != 'null').map(a => a == 'true'));
 				break;
 			}
 			case 'whitelisted': {
@@ -212,8 +212,8 @@ function addCondition(path, arg, value, conditions, vars, placeholder) {
 				if (value.length == 0) return { placeholder };
 				value = value.map(a => a.toString().toLowerCase());
 				for (let item of value) if (!['true', 'false', 'null'].includes(item)) return { error: `Invalid value for parameter "whitelisted" (${item} is not a boolean)` };
-				conditions.push(`${Array(value.length).fill().map(a => `s.whitelisted = $${placeholder++}`).join(' OR ')}`);
-				vars.push(...value.map(a => a == 'true'));
+				conditions.push(`${Array(value.length).fill().map((a, i) => value[i] == 'null' ? 's.whitelisted IS NULL'  : `s.whitelisted = $${placeholder++}`).join(' OR ')}`);
+				vars.push(...value.filter(a => a != 'null').map(a => a == 'true'));
 				break;
 			}
 			case 'vanilla': {
