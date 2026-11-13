@@ -128,7 +128,15 @@ function addCondition(path, arg, value, cteConditions, conditions, vars, placeho
 				break;
 			}
 			case 'ip': {
-				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "ip" (${item} is not a number)` };
+				for (let i = 0; i < value.length; i++) {
+					let item = value[i];
+					if (typeof item === 'number' && item % 1 > 0) return { error: `Invalid value for parameter "ip" (${item} is not an integer)` };
+					if (typeof item === 'string') {
+						let arr = item.split('.').map(a => parseInt(a));
+						if (arr.length != 4 || arr.some(a => isNaN(a))) return { error: `Invalid value for parameter "ip" (${item} is not a valid ip address)` };
+						item = value[i] = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+					}
+				}
 				conditions.push(`${Array(value.length).fill().map(a => `s.ip = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
 				break;
@@ -280,9 +288,16 @@ function addCondition(path, arg, value, cteConditions, conditions, vars, placeho
 				break;
 			}
 			case 'ip': {
-				if (!Array.isArray(value)) value = [value];
-				for (let item of value) if (isNaN(item) || isNaN(parseInt(item))) return { error: `Invalid value for parameter "ip" (${item} is not a number)` };
-				conditions.push(`${Array(value.length).fill().map(a => `b.ip = $${placeholder++}`).join(' OR ')}`);
+				for (let i = 0; i < value.length; i++) {
+					let item = value[i];
+					if (typeof item === 'number' && item % 1 > 0) return { error: `Invalid value for parameter "ip" (${item} is not an integer)` };
+					if (typeof item === 'string') {
+						let arr = item.split('.').map(a => parseInt(a));
+						if (arr.length != 4 || arr.some(a => isNaN(a))) return { error: `Invalid value for parameter "ip" (${item} is not a valid ip address)` };
+						item = value[i] = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+					}
+				}
+				conditions.push(`${Array(value.length).fill().map(a => `s.ip = $${placeholder++}`).join(' OR ')}`);
 				vars.push(...value.map(a => parseInt(a - 2147483648)));
 				break;
 			}
@@ -372,7 +387,7 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 		try {
 			for (const item in body) args[item] = (typeof body[item] == 'string' ? body[item] : JSON.stringify(body[item]));
 		} catch (err) {
-			res.end(JSON.stringify({ error: 'Error handling request body' }))
+			res.end(JSON.stringify({ error: 'Error handling request body' }));
 			return;
 		}
 	}
@@ -416,7 +431,8 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 	let vars = [];
 	let sort;
 	let descending = false;
-	let includePlayers;
+	let includePlayers = false;
+	let ipType = 'integer';
 
 	if (args.skip != null && !isNaN(args.skip) && !isNaN(parseInt(args.skip))) skip = parseInt(args.skip);
 	delete args.skip;
@@ -454,7 +470,21 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 				if (args.maxIp != null) args.maxIp = [args.maxIp];
 			}
 			let ipRanges = [];
-			for (let i = 0; i < Math.max(args.minIp.length, args.maxIp.length); i++) ipRanges.push({ minIp: args.minIp[i], maxIp: args.maxIp[i] });
+			for (let i = 0; i < Math.max(args.minIp?.length || 0, args.maxIp?.length || 0); i++) {
+				let minIp = args.minIp?.[i] || 0;
+				let maxIp = args.maxIp?.[i] || (256**4 - 1);
+				if (typeof minIp === 'string') {
+					let arr = minIp.split('.').map(a => parseInt(a));
+					if (arr.length != 4 || arr.some(a => isNaN(a))) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${minIp} is not a valid ip address)` }));
+					minIp = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+				}
+				if (typeof maxIp === 'string') {
+					let arr = maxIp.split('.').map(a => parseInt(a));
+					if (arr.length != 4 || arr.some(a => isNaN(a))) return res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${maxIp} is not a valid ip address)` }));
+					maxIp = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+				}
+				ipRanges.push({ minIp, maxIp });
+			}
 			for (let range of ipRanges) {
 				try { range.minIp = JSON.parse(range.minIp) } catch (err) {}
 				try { range.maxIp = JSON.parse(range.maxIp) } catch (err) {}
@@ -466,7 +496,7 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 					if (Math.abs(range.minIp.length - range.maxIp.length) > 1) return res.end(JSON.stringify({ error: `Invalid length for parameter "${range.minIp.length > range.maxIp.length ? 'minIp' : 'maxIp'}" (lengths of minIp and maxIp must be equal or differ by one)` }));
 					for (const item of range.minIp) {
 						if (isNaN(item) || isNaN(parseInt(item))) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a number)` }));
-						else if (parseInt(item) < 0 || parseInt(item) > 4294967295) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a valid ip address)` }));
+						if (parseInt(item) < 0 || parseInt(item) > 4294967295) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a valid ip address)` }));
 					}
 					for (const item of range.maxIp) {
 						if (isNaN(item) || isNaN(parseInt(item))) return res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${item} is not a number)` }));
@@ -496,9 +526,15 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 		}
 
 		if (args.includePlayers != null) {
-			if (!['true', 'false'].includes(args.includePlayers)) return res.end(JSON.stringify({ error: `Invalid value for parameter "descending" (${args.vanilla} is not a boolean)` }));
+			if (!['true', 'false'].includes(args.includePlayers)) return res.end(JSON.stringify({ error: `Invalid value for parameter "includePlayers" (${args.includePlayers} is not a boolean)` }));
 			includePlayers = args.includePlayers == 'true';
 			delete args.includePlayers;
+		}
+
+		if (args.ipType != null) {
+			if (!['integer', 'decimal'].includes(args.ipType)) return res.end(JSON.stringify({ error: `Invalid value for parameter "ipType" (${args.ipType} must be "integer" or "decimal")` }));
+			ipType = args.ipType;
+			delete args.ipType;
 		}
 
 		for (const key in args) {
@@ -507,7 +543,7 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 					item = JSON.parse(item);
 				} catch (err) {}
 				let options = {};
-				if (typeof item == 'object') {
+				if (typeof item == 'object' && !Array.isArray(item)) {
 					let obj = item;
 					item = item.data;
 					delete obj.data;
@@ -560,7 +596,21 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 				if (args.maxIp != null) args.maxIp = [args.maxIp];
 			}
 			let ipRanges = [];
-			for (let i = 0; i < Math.max(args.minIp.length, args.maxIp.length); i++) ipRanges.push({ minIp: args.minIp[i], maxIp: args.maxIp[i] });
+			for (let i = 0; i < Math.max(args.minIp?.length || 0, args.maxIp?.length || 0); i++) {
+				let minIp = args.minIp?.[i] || 0;
+				let maxIp = args.maxIp?.[i] || (256**4 - 1);
+				if (typeof minIp === 'string') {
+					let arr = minIp.split('.').map(a => parseInt(a));
+					if (arr.length != 4 || arr.some(a => isNaN(a))) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${minIp} is not a valid ip address)` }));
+					minIp = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+				}
+				if (typeof maxIp === 'string') {
+					let arr = maxIp.split('.').map(a => parseInt(a));
+					if (arr.length != 4 || arr.some(a => isNaN(a))) return res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${maxIp} is not a valid ip address)` }));
+					maxIp = arr.reduce((a, b, i, arr) => a + (b * 256**(arr.length - i - 1)), 0);
+				}
+				ipRanges.push({ minIp, maxIp });
+			}
 			for (let range of ipRanges) {
 				try { range.minIp = JSON.parse(range.minIp) } catch (err) {}
 				try { range.maxIp = JSON.parse(range.maxIp) } catch (err) {}
@@ -569,42 +619,29 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 				if (range.minIp != null && range.maxIp != null) {
 					let condition = '';
 					let len = Math.min(range.minIp.length, range.maxIp.length);
-					if (Math.abs(range.minIp.length - range.maxIp.length) > 1) {
-						res.end(JSON.stringify({ error: `Invalid length for parameter "${range.minIp.length > range.maxIp.length ? 'minIp' : 'maxIp'}" (lengths of minIp and maxIp must be equal or differ by one)` }));
-						return;
-					}
+					if (Math.abs(range.minIp.length - range.maxIp.length) > 1) return res.end(JSON.stringify({ error: `Invalid length for parameter "${range.minIp.length > range.maxIp.length ? 'minIp' : 'maxIp'}" (lengths of minIp and maxIp must be equal or differ by one)` }));
 					for (const item of range.minIp) {
-						if (isNaN(item) || isNaN(parseInt(item))) {
-							res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a number)` }));
-							return;
-						} else if (parseInt(item) < 0 || parseInt(item) > 4294967295) {
-							res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a valid ip address)` }));
-							return;
-						}
+						if (isNaN(item) || isNaN(parseInt(item))) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a number)` }));
+						if (parseInt(item) < 0 || parseInt(item) > 4294967295) return res.end(JSON.stringify({ error: `Invalid value for parameter "minIp" (${item} is not a valid ip address)` }));
 					}
 					for (const item of range.maxIp) {
-						if (isNaN(item) || isNaN(parseInt(item))) {
-							res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${item} is not a number)` }));
-							return;
-						} else if (parseInt(item) < 0 || parseInt(item) > 4294967295) {
-							res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${item} is not a valid ip address)` }));
-							return;
-						}
+						if (isNaN(item) || isNaN(parseInt(item))) return res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${item} is not a number)` }));
+						else if (parseInt(item) < 0 || parseInt(item) > 4294967295) return res.end(JSON.stringify({ error: `Invalid value for parameter "maxIp" (${item} is not a valid ip address)` }));
 					}
 					range.minIp = range.minIp.map(a => parseInt(a - 2147483648));
 					range.maxIp = range.maxIp.map(a => parseInt(a - 2147483648));
 					for (let i = 0; i < len; i++) {
-						condition += `${condition == '' ? '' : ' OR'} (b.ip BETWEEN $${placeholder++} AND $${placeholder++})`;
+						condition += `${condition == '' ? '' : ' OR'} (s.ip BETWEEN $${placeholder++} AND $${placeholder++})`;
 						vars.push(range.minIp[i], range.maxIp[i]);
 					}
 					range.minIp.splice(0, len);
 					range.maxIp.splice(0, len);
 					if (range.minIp.length) {
-						condition += `${condition == '' ? '' : ' OR'} (b.ip >= $${placeholder++})`;
+						condition += `${condition == '' ? '' : ' OR'} (s.ip >= $${placeholder++})`;
 						vars.push(range.minIp[0]);
 					}
 					if (range.maxIp.length) {
-						condition += `${condition == '' ? '' : ' OR'} (b.ip <= $${placeholder++})`;
+						condition += `${condition == '' ? '' : ' OR'} (s.ip <= $${placeholder++})`;
 						vars.push(range.maxIp[0]);
 					}
 					conditions.push(`(${condition})`)
@@ -672,35 +709,44 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 		}
 
 		res.end(JSON.stringify({
-			data: result.rows.map(a => Object.assign({
-				ip: a.ip + 2147483648,
-				port: a.port + 32768,
-				discovered: a.discovered,
-				lastSeen: a.lastseen,
-				version: {
-					name: a.version,
-					protocol: a.protocol,
-				},
-				description: a.description,
-				rawDescription: a.rawdescription,
-				players: {
-					max: a.playerlimit,
-					online: a.playercount,
-					hasPlayerSample: a.hasplayersample
-				},
-				hasFavicon: a.hasfavicon,
-				hasForgeData: a.hasforgedata,
-				enforcesSecureChat: a.enforcessecurechat,
-				org: a.org,
-				geo: {
-					country: a.country,
-					city: a.city,
-					lat: a.lat,
-					lon: a.lon
-				},
-				cracked: a.cracked,
-				whitelisted: a.whitelisted
-			}, includePlayers ? { playerHistory: a.playerhistory || [] } : {})),
+			data: result.rows.map(a => {
+				let data = {
+					ip: a.ip + 2147483648,
+					port: a.port + 32768,
+					discovered: a.discovered,
+					lastSeen: a.lastseen,
+					version: {
+						name: a.version,
+						protocol: a.protocol,
+					},
+					description: a.description,
+					rawDescription: a.rawdescription,
+					players: {
+						max: a.playerlimit,
+						online: a.playercount,
+						hasPlayerSample: a.hasplayersample
+					},
+					hasFavicon: a.hasfavicon,
+					hasForgeData: a.hasforgedata,
+					enforcesSecureChat: a.enforcessecurechat,
+					org: a.org,
+					geo: {
+						country: a.country,
+						city: a.city,
+						lat: a.lat,
+						lon: a.lon
+					},
+					cracked: a.cracked,
+					whitelisted: a.whitelisted
+				};
+				if (includePlayers) data.playerHistory = a.playerhistory;
+				if (ipType == 'decimal') {
+					let buf = Buffer.alloc(4);
+					buf.writeUint32BE(data.ip);
+					data.ip = Array.from(buf).map(a => a.toString()).join('.');
+				}
+				return data;
+			}),
 			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
@@ -770,8 +816,8 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 		}
 
 		res.end(JSON.stringify({
-			data: result.rows.map(a => (
-				{
+			data: result.rows.map(a => {
+				let data = {
 					ip: a.ip + 2147483648,
 					port: a.port + 32768,
 					discovered: a.discovered,
@@ -801,7 +847,13 @@ module.exports = async ({ userIp, req, res, pool, requests, streamServers }) => 
 						lon: a.lon
 					}
 				}
-			)),
+				if (ipType == 'decimal') {
+					let buf = Buffer.alloc(4);
+					buf.writeUint32BE(data.ip);
+					data.ip = Array.from(buf).map(a => a.toString()).join('.');
+				}
+				return data;
+			}),
 			credits: Math.max(0, config.maxCredits - requests[userIp])
 		}));
 	}
