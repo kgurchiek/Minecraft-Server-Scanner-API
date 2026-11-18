@@ -31,35 +31,49 @@ let versions = {
 };
 
 (async () => {
-	let cloudflareIpv4 = await fetch('https://www.cloudflare.com/ips-v4');
-	if (cloudflareIpv4.status != 200) {
-		console.log(`Couldn't fetch Cloudflare ip ranges (${cloudflareIpv4.status})`);
-		process.exit();
+	if (config.cloudflare) {
+		var cloudflareIpv4 = await fetch('https://www.cloudflare.com/ips-v4');
+		if (cloudflareIpv4.status != 200) {
+			console.log(`Couldn't fetch Cloudflare ip ranges (${cloudflareIpv4.status})`);
+			process.exit();
+		}
+		cloudflareIpv4 = (await cloudflareIpv4.text()).split('\n').map(a => a.trim());
+	
+		var cloudflareIpv6 = await fetch('https://www.cloudflare.com/ips-v6');
+		if (cloudflareIpv6.status != 200) {
+			console.log(`Couldn't fetch Cloudflare ip ranges (${cloudflareIpv6.status})`);
+			process.exit();
+		}
+		cloudflareIpv6 = (await cloudflareIpv6.text()).split('\n').map(a => a.trim());
 	}
-	cloudflareIpv4 = (await cloudflareIpv4.text()).split('\n').map(a => a.trim());
-
-	let cloudflareIpv6 = await fetch('https://www.cloudflare.com/ips-v6');
-	if (cloudflareIpv6.status != 200) {
-		console.log(`Couldn't fetch Cloudflare ip ranges (${cloudflareIpv6.status})`);
-		process.exit();
-	}
-	cloudflareIpv6 = (await cloudflareIpv6.text()).split('\n').map(a => a.trim());
 
 	http.createServer(async (req, res) => {
 		let userIp = req.socket.remoteAddress;
 		let isCloudflare = false;
 		if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
-		let v6 = userIp.includes(':');
-		let cloudflareAddresses = v6 ? cloudflareIpv6 : cloudflareIpv4;
-		let address = v6 ? ipAddress.Address6 : ipAddress.Address4;
-		for (let i = 0; i < cloudflareAddresses.length && !isCloudflare; i++) if ((new address(userIp)).isInSubnet(new address(cloudflareAddresses[i]))) isCloudflare = true;
-		if (config.cloudflare & !isCloudflare && !config.exclude.includes(userIp)) {
-			console.log(`Dropping non-cloudflare request (${userIp})`);
-			return;
+		if (config.cloudflare) {
+			let v6 = userIp.includes(':');
+			let cloudflareAddresses = v6 ? cloudflareIpv6 : cloudflareIpv4;
+			let address = v6 ? ipAddress.Address6 : ipAddress.Address4;
+			for (let i = 0; i < cloudflareAddresses.length && !isCloudflare; i++) if ((new address(userIp)).isInSubnet(new address(cloudflareAddresses[i]))) isCloudflare = true;
+			if (isCloudflare) {
+				userIp = req.headers['cf-connecting-ip'];
+				if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
+			} else if (!config.exclude.includes(userIp)) {
+				console.log(`Dropping non-cloudflare request (${userIp})`);
+				return;
+			}
 		}
-		if (isCloudflare) {
-			userIp = req.headers['cf-connecting-ip'];
-			if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
+		if (config.proxy) {
+			if (userIp == config.proxy) {
+				if (req.headers['x-real-ip']) {
+					userIp = req.headers['x-real-ip'];
+					if (userIp.startsWith('::ffff:')) userIp = userIp.slice(7);
+				}
+			} else if (!config.exclude.includes(userIp)) {
+				console.log(`Dropping non-proxy request (${userIp})`);
+				return;
+			}
 		}
 
 		const parsedUrl = new URL(`https://localhost${req.url}`);
